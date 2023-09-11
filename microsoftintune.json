@@ -91,8 +91,7 @@
     {
       "action": "test connectivity",
       "identifier": "test_connectivity",
-      "description": "Validate the asset configuration for connectivity using supplied configuration.",
-      "verbose": "",
+      "description": "Validate the asset configuration for connectivity using supplied configuration",
       "type": "test",
       "read_only": true,
       "parameters": {},
@@ -103,7 +102,7 @@
       "action": "list managed devices",
       "identifier": "list_managed_devices",
       "description": "List properties and relationships of the managedDevice objects.",
-      "verbose": "For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter.",
+      "verbose": "For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter",
       "type": "investigate",
       "read_only": true,
       "parameters": {
