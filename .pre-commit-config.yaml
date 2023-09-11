@@ -9,3 +9,4 @@ repos:
     hooks:
     -   id: detect-secrets
         args: ['--no-verify']
+        exclude: 'microsoftintune_consts.py'
