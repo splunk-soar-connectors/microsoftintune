@@ -9,7 +9,7 @@
   "product_name": "Intune",
   "python_version": "3",
   "product_version_regex": ".*",
-  "publisher": "Splunk",
+  "publisher": "Nikhilesh Chaudhari",
   "contributors": [
     {
       "name": "Nikhilesh Chaudhari"
@@ -91,7 +91,7 @@
     {
       "action": "test connectivity",
       "identifier": "test_connectivity",
-      "description": "Validate the asset configuration for connectivity using supplied configuration",
+      "description": "Validate the asset configuration for connectivity using supplied configuration.",
       "verbose": "",
       "type": "test",
       "read_only": true,
@@ -103,12 +103,12 @@
       "action": "list managed devices",
       "identifier": "list_managed_devices",
       "description": "List properties and relationships of the managedDevice objects.",
-      "verbose": "For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter",
+      "verbose": "For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter.",
       "type": "investigate",
       "read_only": true,
       "parameters": {
         "filter_string": {
-          "description": "Filter string to apply to device listing",
+          "description": "Filter string to apply to device listing.",
           "data_type": "string",
           "required": false,
           "primary": false,
