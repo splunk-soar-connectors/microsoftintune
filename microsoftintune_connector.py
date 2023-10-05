@@ -1060,7 +1060,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             "In action handler for: {0}".format(self.get_action_identifier())
         )
         action_result = self.add_action_result(ActionResult(dict(param)))
-        filter_string = param.get("filter_string", None)
+        filter_string = param.get("filter_string")
 
         headers = {}
         parameters = {}
