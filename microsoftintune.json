@@ -4,8 +4,8 @@
     "description": "Connects to Microsoft Intune using MS Graph REST API services to support managed device actions",
     "type": "identity management",
     "product_vendor": "Microsoft",
-    "logo": "microsoftintune.png",
-    "logo_dark": "microsoftintune_dark.png",
+    "logo": "logo_microsoftintune.svg",
+    "logo_dark": "logo_microsoftintune_dark.svg",
     "product_name": "Intune",
     "python_version": "3",
     "product_version_regex": ".*",
@@ -156,6 +156,10 @@
                     "example_values": [
                         "Successfully listed devices"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
