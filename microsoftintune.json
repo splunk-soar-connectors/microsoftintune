@@ -59,13 +59,13 @@
         "admin_access_required": {
             "description": "Admin Access Required",
             "data_type": "boolean",
-            "default": true,
+            "default": false,
             "order": 4
         },
         "admin_access_granted": {
             "description": "Admin Consent Already Provided",
             "data_type": "boolean",
-            "default": true,
+            "default": false,
             "order": 5
         }
     },
