@@ -1,15 +1,3 @@
-[comment]: # "Auto-generated SOAR connector documentation"
-# Microsoft Intune
-
-Publisher: Nikhilesh Chaudhari  
-Connector Version: 1.0.1  
-Product Vendor: Microsoft  
-Product Name: Intune  
-Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.0.0.114895  
-
-Connects to Microsoft Intune using MS Graph REST API services to support managed device actions
-
 [comment]: # "File: manual_readme_content.md"
 [comment]: # "Copyright (c) Splunk, 2023"
 [comment]: # ""
@@ -121,59 +109,3 @@ default ports used by the Splunk SOAR Connector.
 | Service Name | Transport Protocol | Port |
 |--------------|--------------------|------|
 | https        | tcp                | 443  |
-
-### Configuration Variables
-The below configuration variables are required for this Connector to operate.  These variables are specified when configuring a Intune asset in SOAR.
-
-VARIABLE | REQUIRED | TYPE | DESCRIPTION
--------- | -------- | ---- | -----------
-**tenant_id** |  required  | string | Tenant (Tenant ID or Tenant Name)
-**client_id** |  required  | string | Application ID
-**client_secret** |  required  | password | Client Secret
-**region** |  optional  | string | Microsoft AD Region
-**admin_access_required** |  optional  | boolean | Admin Access Required
-**admin_access_granted** |  optional  | boolean | Admin Consent Already Provided
-
-### Supported Actions  
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration  
-[list managed devices](#action-list-managed-devices) - List properties and relationships of the managedDevice objects  
-
-## action: 'test connectivity'
-Validate the asset configuration for connectivity using supplied configuration
-
-Type: **test**  
-Read only: **True**
-
-#### Action Parameters
-No parameters are required for this action
-
-#### Action Output
-No Output  
-
-## action: 'list managed devices'
-List properties and relationships of the managedDevice objects
-
-Type: **investigate**  
-Read only: **True**
-
-For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter.
-
-#### Action Parameters
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**filter_string** |  optional  | Filter string to apply to device listing | string | 
-
-#### Action Output
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.parameter.filter_string | string |  |   deviceName eq 'userDeviceName' 
-action_result.status | string |  |   success  failed 
-action_result.data.\*.userDisplayName | string |  |  
-action_result.data.\*.deviceName | string |  |  
-action_result.data.\*.id | string |  |  
-action_result.data.\*.enrolledDateTime | string |  |   2023-05-20T02:21:44Z 
-action_result.data.\*.lastSyncDateTime | string |  |   2023-05-20T02:21:44Z 
-action_result.message | string |  |   Successfully listed devices 
-action_result.summary | string |  |  
-summary.total_objects | numeric |  |   10 
-summary.total_objects_successful | numeric |  |   1 
