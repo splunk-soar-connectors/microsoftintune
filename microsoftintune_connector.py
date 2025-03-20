@@ -1,6 +1,6 @@
 # File: microsoftintune_connector.py
 #
-# Copyright (c) Splunk, 2023
+# Copyright (c) Splunk, 2023-2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 
 from microsoftintune_consts import *
+
 
 MAX_END_OFFSET_VAL = 2147483646
 
@@ -172,11 +173,11 @@ def _load_app_state(asset_id, app_connector=None):
 
     state = {}
     try:
-        with open(state_file_path, "r") as state_file:
+        with open(state_file_path) as state_file:
             state = json.load(state_file)
     except Exception as e:
         if app_connector:
-            app_connector.error_print(f"In _load_app_state: Exception: {str(e)}")
+            app_connector.error_print(f"In _load_app_state: Exception: {e!s}")
 
     if app_connector:
         app_connector.debug_print("Loaded state: ", state)
@@ -185,9 +186,7 @@ def _load_app_state(asset_id, app_connector=None):
         state = _decrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.error_print(
-                "{}: {}".format(MS_AZURE_DECRYPTION_ERROR, str(e))
-            )
+            app_connector.error_print(f"{MS_AZURE_DECRYPTION_ERROR}: {e!s}")
         state = {}
 
     return state
@@ -213,9 +212,7 @@ def _save_app_state(state, asset_id, app_connector):
         state = _encrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.error_print(
-                "{}: {}".format(MS_AZURE_ENCRYPTION_ERROR, str(e))
-            )
+            app_connector.error_print(f"{MS_AZURE_ENCRYPTION_ERROR}: {e!s}")
         return phantom.APP_ERROR
 
     if app_connector:
@@ -226,7 +223,7 @@ def _save_app_state(state, asset_id, app_connector):
             json.dump(state, state_file)
     except Exception as e:
         if app_connector:
-            app_connector.error_print(f"Unable to save state file: {str(e)}")
+            app_connector.error_print(f"Unable to save state file: {e!s}")
 
     return phantom.APP_SUCCESS
 
@@ -343,9 +340,7 @@ def _handle_rest_request(request, path_parts):
             try:
                 uid = pwd.getpwnam("apache").pw_uid
                 gid = grp.getgrnam("phantom").gr_gid
-                os.chown(
-                    auth_status_file_path, uid, gid
-                )  # nosemgrep file traversal risk is handled by blocking non-alphanum strings
+                os.chown(auth_status_file_path, uid, gid)  # nosemgrep file traversal risk is handled by blocking non-alphanum strings
             except Exception:
                 pass
 
@@ -373,15 +368,13 @@ def _get_dir_name_from_app_name(app_name):
 
 class RetVal(tuple):
     def __new__(cls, val1, val2):
-
         return tuple.__new__(RetVal, (val1, val2))
 
 
 class MicrosoftIntuneConnector(BaseConnector):
     def __init__(self):
-
         # Call the BaseConnectors init first
-        super(MicrosoftIntuneConnector, self).__init__()
+        super().__init__()
 
         self._state = None
         self._tenant = None
@@ -407,7 +400,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             state = _decrypt_state(state, self.get_asset_id())
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            self.error_print("{}: {}".format(MS_AZURE_DECRYPTION_ERROR, error_message))
+            self.error_print(f"{MS_AZURE_DECRYPTION_ERROR}: {error_message}")
             state = None
 
         return state
@@ -422,7 +415,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             state = _encrypt_state(state, self.get_asset_id())
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            self.error_print("{}: {}".format(MS_AZURE_ENCRYPTION_ERROR, error_message))
+            self.error_print(f"{MS_AZURE_ENCRYPTION_ERROR}: {error_message}")
             return phantom.APP_ERROR
 
         return super().save_state(state)
@@ -452,11 +445,9 @@ class MicrosoftIntuneConnector(BaseConnector):
             self.error_print("Exception occurred while getting error code and message")
 
         if not error_code:
-            error_text = "Error Message: {}".format(error_message)
+            error_text = f"Error Message: {error_message}"
         else:
-            error_text = "Error Code: {}. Error Message: {}".format(
-                error_code, error_message
-            )
+            error_text = f"Error Code: {error_code}. Error Message: {error_message}"
 
         return error_text
 
@@ -472,9 +463,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             return RetVal(phantom.APP_SUCCESS, {})
 
         return RetVal(
-            action_result.set_status(
-                phantom.APP_ERROR, "Empty response and no information in the header"
-            ),
+            action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"),
             None,
         )
 
@@ -501,16 +490,12 @@ class MicrosoftIntuneConnector(BaseConnector):
         except:
             error_text = "Cannot parse error details"
 
-        message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(
-            status_code=status_code, error_text=error_text
-        )
+        message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=status_code, error_text=error_text)
 
         message = message.replace("{", "{{").replace("}", "}}")
 
         if status_code == MS_AZURE_BAD_REQUEST_CODE:
-            message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(
-                status_code=status_code, error_text=MS_AZURE_HTML_ERROR
-            )
+            message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=status_code, error_text=MS_AZURE_HTML_ERROR)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -530,7 +515,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             return RetVal(
                 action_result.set_status(
                     phantom.APP_ERROR,
-                    "Unable to parse JSON response. Error: {0}".format(error_message),
+                    f"Unable to parse JSON response. Error: {error_message}",
                 ),
                 None,
             )
@@ -540,22 +525,16 @@ class MicrosoftIntuneConnector(BaseConnector):
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         error_message = response.text.replace("{", "{{").replace("}", "}}")
-        message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(
-            status_code=response.status_code, error_text=error_message
-        )
+        message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=response.status_code, error_text=error_message)
 
         # Show only error message if available
         if isinstance(resp_json.get("error", {}), dict):
             if resp_json.get("error", {}).get("message"):
                 error_message = resp_json["error"]["message"]
-                message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(
-                    status_code=response.status_code, error_text=error_message
-                )
+                message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=response.status_code, error_text=error_message)
         else:
             error_message = resp_json["error"]
-            message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(
-                status_code=response.status_code, error_text=error_message
-            )
+            message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=response.status_code, error_text=error_message)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -599,9 +578,7 @@ class MicrosoftIntuneConnector(BaseConnector):
 
         # everything else is actually an error at this point
         response_content = response.text.replace("{", "{{").replace("}", "}}")
-        message = MS_AZURE_PROCESS_RESPONSE_ERROR_MESSAGE.format(
-            status_code=response.status_code, content=response_content
-        )
+        message = MS_AZURE_PROCESS_RESPONSE_ERROR_MESSAGE.format(status_code=response.status_code, content=response_content)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -612,12 +589,8 @@ class MicrosoftIntuneConnector(BaseConnector):
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS(along with appropriate message), asset name
         """
 
-        url = urlparse.urljoin(
-            self.get_phantom_base_url(), f"rest/asset/{self._asset_id}"
-        )
-        ret_val, resp_json = self._make_rest_call(
-            action_result=action_result, endpoint=url, verify=False
-        )  # nosemgrep
+        url = urlparse.urljoin(self.get_phantom_base_url(), f"rest/asset/{self._asset_id}")
+        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)  # nosemgrep
 
         if phantom.is_fail(ret_val):
             return ret_val, None
@@ -625,9 +598,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         asset_name = resp_json.get("name")
         if not asset_name:
             return (
-                action_result.set_status(
-                    phantom.APP_ERROR, f"Asset Name for id: {self._asset_id} not found."
-                ),
+                action_result.set_status(phantom.APP_ERROR, f"Asset Name for id: {self._asset_id} not found."),
                 None,
             )
         return phantom.APP_SUCCESS, asset_name
@@ -641,18 +612,14 @@ class MicrosoftIntuneConnector(BaseConnector):
         """
 
         url = urlparse.urljoin(self.get_phantom_base_url(), "rest/system_info")
-        ret_val, resp_json = self._make_rest_call(
-            action_result=action_result, endpoint=url, verify=False
-        )  # nosemgrep
+        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)  # nosemgrep
         if phantom.is_fail(ret_val):
             return ret_val, None
 
         phantom_base_url = resp_json.get("base_url").rstrip("/")
         if not phantom_base_url:
             return (
-                action_result.set_status(
-                    phantom.APP_ERROR, MS_AZURE_BASE_URL_NOT_FOUND_MESSAGE
-                ),
+                action_result.set_status(phantom.APP_ERROR, MS_AZURE_BASE_URL_NOT_FOUND_MESSAGE),
                 None,
             )
         return phantom.APP_SUCCESS, phantom_base_url
@@ -679,9 +646,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         app_name = app_json["name"]
 
         app_dir_name = _get_dir_name_from_app_name(app_name)
-        url_to_app_rest = (
-            f"{phantom_base_url}/rest/handler/{app_dir_name}_{app_id}/{asset_name}"
-        )
+        url_to_app_rest = f"{phantom_base_url}/rest/handler/{app_dir_name}_{app_id}/{asset_name}"
         return phantom.APP_SUCCESS, url_to_app_rest
 
     def _make_rest_call(
@@ -715,9 +680,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             request_func = getattr(requests, method)
         except AttributeError:
             return RetVal(
-                action_result.set_status(
-                    phantom.APP_ERROR, f"Invalid method: {method}"
-                ),
+                action_result.set_status(phantom.APP_ERROR, f"Invalid method: {method}"),
                 resp_json,
             )
 
@@ -779,27 +742,19 @@ class MicrosoftIntuneConnector(BaseConnector):
                 "Content-Type": "application/json",
             }
         )
-        ret_val, resp_json = self._make_rest_call(
-            url, action_result, verify, headers, params, data, json, method
-        )
+        ret_val, resp_json = self._make_rest_call(url, action_result, verify, headers, params, data, json, method)
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-        if msg and any(
-            failure_message in msg for failure_message in AUTH_FAILURE_MESSAGES
-        ):
-            self.save_progress(
-                "Token is invalid/expired. Hence, generating a new token."
-            )
+        if msg and any(failure_message in msg for failure_message in AUTH_FAILURE_MESSAGES):
+            self.save_progress("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
                 return RetVal(ret_val, None)
 
             headers.update({"Authorization": f"Bearer {self._access_token}"})
 
-            ret_val, resp_json = self._make_rest_call(
-                url, action_result, verify, headers, params, data, json, method
-            )
+            ret_val, resp_json = self._make_rest_call(url, action_result, verify, headers, params, data, json, method)
 
         if phantom.is_fail(ret_val):
             return RetVal(ret_val, resp_json)
@@ -807,7 +762,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         return RetVal(phantom.APP_SUCCESS, resp_json)
 
     def _handle_test_connectivity(self, param):
-        """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
+        """Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
         # Progress
         # self.save_progress("Generating Authentication URL")
@@ -815,16 +770,13 @@ class MicrosoftIntuneConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(param))
 
         if not (self._admin_access_required and self._admin_access_granted):
-
             self.save_progress("Getting App REST endpoint URL")
             # Get the URL to the app's REST Endpoint, this is the url that the TC dialog
             # box will ask the user to connect to
             ret_val, app_rest_url = self._get_app_rest_url(action_result)
 
             if phantom.is_fail(ret_val):
-                self.save_progress(
-                    MS_REST_URL_NOT_AVAILABLE_MESSAGE.format(error=self.get_status())
-                )
+                self.save_progress(MS_REST_URL_NOT_AVAILABLE_MESSAGE.format(error=self.get_status()))
                 return self.set_status(phantom.APP_ERROR)
 
             # create the url that the oauth server should re-direct to after the auth is completed
@@ -848,20 +800,14 @@ class MicrosoftIntuneConnector(BaseConnector):
 
             if self._admin_access_required:
                 # Create the url for fetching administrator consent
-                admin_consent_url_base = MS_AZURE_ADMIN_CONSENT_URL.format(
-                    tenant_id=self._tenant
-                )
+                admin_consent_url_base = MS_AZURE_ADMIN_CONSENT_URL.format(tenant_id=self._tenant)
             else:
                 # Create the url authorization, this is the one pointing to the oauth server side
-                admin_consent_url_base = MS_AZURE_AUTHORIZE_URL.format(
-                    tenant_id=self._tenant
-                )
+                admin_consent_url_base = MS_AZURE_AUTHORIZE_URL.format(tenant_id=self._tenant)
                 query_params["scope"] = MS_AZURE_CODE_GENERATION_SCOPE
                 query_params["response_type"] = "code"
 
-            query_string = "&".join(
-                f"{key}={value}" for key, value in query_params.items()
-            )
+            query_string = "&".join(f"{key}={value}" for key, value in query_params.items())
 
             admin_consent_url = f"{admin_consent_url_base}?{query_string}"
 
@@ -875,9 +821,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             _save_app_state(app_state, self._asset_id, self)
 
             self.save_progress("-" * 175)
-            self.save_progress(
-                "Please connect to the following URL from a different tab to continue the connectivity process"
-            )
+            self.save_progress("Please connect to the following URL from a different tab to continue the connectivity process")
             self.save_progress(" ")
             self.save_progress(url_to_show)
             self.save_progress("-" * 175)
@@ -901,9 +845,7 @@ class MicrosoftIntuneConnector(BaseConnector):
                 time.sleep(MS_TC_STATUS_SLEEP)
 
             if not completed:
-                self.save_progress(
-                    "Authentication process does not seem to be completed. Timing out"
-                )
+                self.save_progress("Authentication process does not seem to be completed. Timing out")
                 self.save_progress(MS_AZURE_TEST_CONNECTIVITY_FAILURE_MESSAGE)
                 return self.set_status(phantom.APP_ERROR)
 
@@ -947,9 +889,7 @@ class MicrosoftIntuneConnector(BaseConnector):
 
         self.save_progress("Getting managed devices")
         params = {"$top": "1"}
-        ret_val, response = self._make_rest_call_helper(
-            action_result, "/deviceManagement/managedDevices", params=params
-        )
+        ret_val, response = self._make_rest_call_helper(action_result, "/deviceManagement/managedDevices", params=params)
 
         if phantom.is_fail(ret_val):
             self.save_progress("API to get users failed")
@@ -984,9 +924,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             data["scope"] = MS_AZURE_CODE_GENERATION_SCOPE
             data["redirect_uri"] = self._state.get("redirect_uri")
             auth_code = self._state.get("code", None)
-            if self._state.get(MS_AZURE_TOKEN_STRING, {}).get(
-                MS_AZURE_REFRESH_TOKEN_STRING, None
-            ):
+            if self._state.get(MS_AZURE_TOKEN_STRING, {}).get(MS_AZURE_REFRESH_TOKEN_STRING, None):
                 data["refresh_token"] = self._refresh_token
                 data["grant_type"] = "refresh_token"
             elif auth_code:
@@ -1001,9 +939,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             data["scope"] = "https://graph.microsoft.com/.default"
             data["grant_type"] = "client_credentials"
 
-        ret_val, resp_json = self._make_rest_call(
-            req_url, action_result, headers=headers, data=data, method="post"
-        )
+        ret_val, resp_json = self._make_rest_call(req_url, action_result, headers=headers, data=data, method="post")
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -1034,11 +970,8 @@ class MicrosoftIntuneConnector(BaseConnector):
             params = {"$top": page_size}
 
         while True:
-
             # make rest call
-            ret_val, response = self._make_rest_call_helper(
-                action_result, endpoint, headers=headers, params=params, method="get"
-            )
+            ret_val, response = self._make_rest_call_helper(action_result, endpoint, headers=headers, params=params, method="get")
 
             if phantom.is_fail(ret_val):
                 return None
@@ -1054,16 +987,10 @@ class MicrosoftIntuneConnector(BaseConnector):
             if response.get(MS_AZURE_NEXT_LINK_STRING):
                 parsed_url = urlparse.urlparse(response.get(MS_AZURE_NEXT_LINK_STRING))
                 try:
-                    params["$skiptoken"] = urlparse.parse_qs(parsed_url.query).get(
-                        "$skiptoken"
-                    )[0]
+                    params["$skiptoken"] = urlparse.parse_qs(parsed_url.query).get("$skiptoken")[0]
                 except:
-                    self.debug_print(
-                        f"odata.nextLink is {response.get(MS_AZURE_NEXT_LINK_STRING)}"
-                    )
-                    self.debug_print(
-                        "Error occurred while extracting skiptoken from the odata.nextLink"
-                    )
+                    self.debug_print(f"odata.nextLink is {response.get(MS_AZURE_NEXT_LINK_STRING)}")
+                    self.debug_print("Error occurred while extracting skiptoken from the odata.nextLink")
                     break
             else:
                 break
@@ -1071,9 +998,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _handle_list_managed_devices(self, param):
-        self.save_progress(
-            "In action handler for: {0}".format(self.get_action_identifier())
-        )
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
         filter_string = param.get("filter_string")
 
@@ -1096,18 +1021,15 @@ class MicrosoftIntuneConnector(BaseConnector):
         summary = action_result.update_summary({})
         resp_data = action_result.get_data()
 
-        if (resp_data and resp_data[action_result.get_data_size() - 1] == "Empty response"):
+        if resp_data and resp_data[action_result.get_data_size() - 1] == "Empty response":
             summary["num_devices"] = (action_result.get_data_size()) - 1
         else:
             summary["num_devices"] = action_result.get_data_size()
 
-        self.save_progress(
-            f"Completed action handler for: {self.get_action_identifier()}"
-        )
+        self.save_progress(f"Completed action handler for: {self.get_action_identifier()}")
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
-
         ret_val = phantom.APP_SUCCESS
 
         # Get the action that we are supposed to execute for this App Run
@@ -1143,31 +1065,21 @@ class MicrosoftIntuneConnector(BaseConnector):
         self._tenant = config[MS_AZURE_CONFIG_TENANT]
         self._client_id = config[MS_AZURE_CONFIG_CLIENT_ID]
         self._client_secret = config[MS_AZURE_CONFIG_CLIENT_SECRET]
-        self._admin_access_required = config.get(
-            MS_AZURE_CONFIG_ADMIN_ACCESS_REQUIRED, False
-        )
-        self._admin_access_granted = config.get(
-            MS_AZURE_CONFIG_ADMIN_ACCESS_GRANTED, False
-        )
-        self._access_token = self._state.get(MS_AZURE_TOKEN_STRING, {}).get(
-            MS_AZURE_ACCESS_TOKEN_STRING
-        )
-        self._refresh_token = self._state.get(MS_AZURE_TOKEN_STRING, {}).get(
-            MS_AZURE_REFRESH_TOKEN_STRING
-        )
+        self._admin_access_required = config.get(MS_AZURE_CONFIG_ADMIN_ACCESS_REQUIRED, False)
+        self._admin_access_granted = config.get(MS_AZURE_CONFIG_ADMIN_ACCESS_GRANTED, False)
+        self._access_token = self._state.get(MS_AZURE_TOKEN_STRING, {}).get(MS_AZURE_ACCESS_TOKEN_STRING)
+        self._refresh_token = self._state.get(MS_AZURE_TOKEN_STRING, {}).get(MS_AZURE_REFRESH_TOKEN_STRING)
         self._base_url = MSADGRAPH_API_URLS[config.get(MS_AZURE_URL, "Global")]
 
         return phantom.APP_SUCCESS
 
     def finalize(self):
-
         # Save the state, this data is saved across actions and app upgrades
         self.save_state(self._state)
         return phantom.APP_SUCCESS
 
 
 if __name__ == "__main__":
-
     import argparse
 
     import pudb
@@ -1196,7 +1108,6 @@ if __name__ == "__main__":
     verify = args.verify
 
     if username is not None and password is None:
-
         # User specified a username but not a password, so ask
         import getpass
 
@@ -1219,9 +1130,7 @@ if __name__ == "__main__":
             headers["Referer"] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(
-                login_url, verify=verify, data=data, headers=headers, timeout=60
-            )
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=60)
             session_id = r2.cookies["sessionid"]
         except Exception as e:
             print("Unable to get session id from the platform. Error: " + str(e))
