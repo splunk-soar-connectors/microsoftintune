@@ -183,13 +183,5 @@
             },
             "versions": "EQ(*)"
         }
-    ],
-    "custom_made": true,
-    "copied_from_id": 200,
-    "copied_from_version": "5.0.0",
-    "directory": "microsoftintune_430a2c79-cde5-41af-aec3-0b9fdf65da3e",
-    "version": 1,
-    "appname": "-",
-    "executable": "spawn3",
-    "disabled": false
+    ]
 }
