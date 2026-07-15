@@ -25,13 +25,6 @@
     "package_name": "phantom_microsoftintune",
     "main_module": "microsoftintune_connector.py",
     "min_phantom_version": "6.3.0",
-    "dependencies": [
-        {
-            "platform_version": ">=6.0.0.114895",
-            "package_name": "beautifulsoup4",
-            "versions": "EQ(4.9.1)"
-        }
-    ],
     "app_wizard_version": "1.0.0",
     "rest_handler": "microsoftintune_connector._handle_rest_request",
     "configuration": {
