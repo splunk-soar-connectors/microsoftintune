@@ -32,22 +32,6 @@
             "versions": "EQ(4.9.1)"
         }
     ],
-    "pip39_dependencies": {
-        "wheel": [
-            {
-                "module": "beautifulsoup4",
-                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            }
-        ]
-    },
-    "pip313_dependencies": {
-        "wheel": [
-            {
-                "module": "beautifulsoup4",
-                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            }
-        ]
-    },
     "app_wizard_version": "1.0.0",
     "rest_handler": "microsoftintune_connector._handle_rest_request",
     "configuration": {
