@@ -1,3 +1,3 @@
 **Unreleased**
-* Apply fix for token renewing Issue #4
-* Apply fix for pagination. Issue #3
+* Fixed managed device pagination by reading Microsoft Graph's @odata.nextLink response field.
+* Fixed access token refresh handling for an additional Microsoft Graph expired-token error response.
