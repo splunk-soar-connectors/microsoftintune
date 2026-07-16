@@ -1,1 +1,3 @@
 **Unreleased**
+* Apply fix for token renewing Issue #4
+* Apply fix for pagination. Issue #3

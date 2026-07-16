@@ -1,10 +1,10 @@
 # Microsoft Intune
 
-Publisher: Nikhilesh Chaudhari \
-Connector Version: 1.0.3 \
-Product Vendor: Microsoft \
-Product Name: Intune \
-Minimum Product Version: 6.0.0.114895
+Publisher: Nikhilesh Chaudhari <br>
+Connector Version: 1.0.3 <br>
+Product Vendor: Microsoft <br>
+Product Name: Intune <br>
+Minimum Product Version: 6.3.0
 
 Connects to Microsoft Intune using MS Graph REST API services to support managed device actions
 
@@ -113,14 +113,14 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration <br>
 [list managed devices](#action-list-managed-devices) - List properties and relationships of the managedDevice objects
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity using supplied configuration
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -135,7 +135,7 @@ No Output
 
 List properties and relationships of the managedDevice objects
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 For more information on using the filter_string parameter, refer to https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter.
@@ -166,7 +166,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
