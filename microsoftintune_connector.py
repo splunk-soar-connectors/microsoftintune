@@ -30,11 +30,13 @@ from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+from phantom_common import paths
 
 from microsoftintune_consts import *
 
 
 MAX_END_OFFSET_VAL = 2147483646
+APP_ID = "430a2c79-cde5-41af-aec3-0b9fdf65da3e"
 
 
 def _handle_login_redirect(request, key):
@@ -95,13 +97,11 @@ def _get_file_path(asset_id, is_state_file=True):
     :param is_state_file: boolean parameter for state file
     :return: file_path: Path object of the file
     """
-    current_file_path = pathlib.Path(__file__).resolve()
     if is_state_file:
         input_file = f"{asset_id}_state.json"
     else:
         input_file = f"{asset_id}_oauth_task.out"
-    output_file_path = current_file_path.with_name(input_file)
-    return output_file_path
+    return pathlib.Path(paths.PHANTOM_APP_STATES) / APP_ID / input_file
 
 
 def _decrypt_state(state, salt):
@@ -170,6 +170,7 @@ def _load_app_state(asset_id, app_connector=None):
         return {}
 
     state_file_path = _get_file_path(asset_id)
+    state_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     state = {}
     try:
@@ -845,6 +846,7 @@ class MicrosoftIntuneConnector(BaseConnector):
                 time.sleep(MS_TC_STATUS_SLEEP)
 
             if not completed:
+                _get_file_path(self._asset_id).unlink(missing_ok=True)
                 self.save_progress("Authentication process does not seem to be completed. Timing out")
                 self.save_progress(MS_AZURE_TEST_CONNECTIVITY_FAILURE_MESSAGE)
                 return self.set_status(phantom.APP_ERROR)
@@ -853,6 +855,7 @@ class MicrosoftIntuneConnector(BaseConnector):
 
             # Load the state again, since the http request handlers would have saved the result of the admin consent
             self._state = _load_app_state(self._asset_id, self)
+            _get_file_path(self._asset_id).unlink(missing_ok=True)
             if not self._state:
                 self.save_progress(MS_STATE_FILE_ERROR_MESSAGE)
                 self.save_progress(MS_AZURE_TEST_CONNECTIVITY_FAILURE_MESSAGE)
