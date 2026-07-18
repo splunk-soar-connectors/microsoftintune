@@ -15,10 +15,12 @@
 
 # Phantom App imports
 import grp
+import hmac
 import json
 import os
 import pathlib
 import pwd
+import secrets
 import sys
 import time
 import urllib.parse as urlparse
@@ -236,13 +238,22 @@ def _handle_login_response(request):
     :return: HttpResponse. The response displayed on authorization URL page
     """
 
-    asset_id = request.GET.get("state")
-    if not asset_id:
+    oauth_state = request.GET.get("state")
+    if not oauth_state or ":" not in oauth_state:
         return HttpResponse(
             f"ERROR: Asset ID not found in URL\n{json.dumps(request.GET)}",
             content_type="text/plain",
             status=MS_AZURE_BAD_REQUEST_CODE,
         )
+
+    asset_id, presented_nonce = oauth_state.split(":", 1)
+    if not _is_valid_asset_id(asset_id):
+        return HttpResponse("ERROR: Invalid OAuth state", content_type="text/plain", status=MS_AZURE_BAD_REQUEST_CODE)
+
+    state = _load_app_state(asset_id)
+    stored_nonce = state.get("oauth_state_nonce", "")
+    if not stored_nonce or not hmac.compare_digest(stored_nonce, presented_nonce):
+        return HttpResponse("ERROR: Invalid OAuth state", content_type="text/plain", status=MS_AZURE_BAD_REQUEST_CODE)
 
     # Check for error in URL
     error = request.GET.get("error")
@@ -270,7 +281,7 @@ def _handle_login_response(request):
             status=MS_AZURE_BAD_REQUEST_CODE,
         )
 
-    state = _load_app_state(asset_id)
+    state.pop("oauth_state_nonce", None)
 
     # If value of admin_consent is available
     if admin_consent:
@@ -328,8 +339,9 @@ def _handle_rest_request(request, path_parts):
     # To handle response from microsoft login page
     if call_type == "result":
         return_val = _handle_login_response(request)
-        asset_id = request.GET.get("state")
-        if asset_id:
+        oauth_state = request.GET.get("state", "")
+        asset_id = oauth_state.split(":", 1)[0]
+        if return_val.status_code < 400 and asset_id:
             if not _is_valid_asset_id(asset_id):
                 return HttpResponse(
                     "Error: Invalid asset_id",
@@ -337,7 +349,7 @@ def _handle_rest_request(request, path_parts):
                     status=MS_AZURE_BAD_REQUEST_CODE,
                 )
             auth_status_file_path = _get_file_path(asset_id, is_state_file=False)
-            auth_status_file_path.touch(mode=664, exist_ok=True)
+            auth_status_file_path.touch(mode=0o600, exist_ok=True)
             try:
                 uid = pwd.getpwnam("apache").pw_uid
                 gid = grp.getgrnam("phantom").gr_gid
@@ -793,10 +805,12 @@ class MicrosoftIntuneConnector(BaseConnector):
             self._client_id = urlparse.quote(self._client_id)
             self._tenant = urlparse.quote(self._tenant)
 
+            flow_nonce = secrets.token_hex(16)
+            app_state["oauth_state_nonce"] = flow_nonce
             query_params = {
                 "client_id": self._client_id,
                 "redirect_uri": redirect_uri,
-                "state": self._asset_id,
+                "state": urlparse.quote(f"{self._asset_id}:{flow_nonce}"),
             }
 
             if self._admin_access_required:
