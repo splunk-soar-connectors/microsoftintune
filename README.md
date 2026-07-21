@@ -4,7 +4,7 @@ Publisher: Nikhilesh Chaudhari <br>
 Connector Version: 1.0.3 <br>
 Product Vendor: Microsoft <br>
 Product Name: Intune <br>
-Minimum Product Version: 6.0.0.114895
+Minimum Product Version: 6.3.0
 
 Connects to Microsoft Intune using MS Graph REST API services to support managed device actions
 
