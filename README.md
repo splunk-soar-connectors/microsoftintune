@@ -1,7 +1,7 @@
 # Microsoft Intune
 
 Publisher: Nikhilesh Chaudhari <br>
-Connector Version: 1.0.3 <br>
+Connector Version: 1.0.4 <br>
 Product Vendor: Microsoft <br>
 Product Name: Intune <br>
 Minimum Product Version: 6.0.0.114895

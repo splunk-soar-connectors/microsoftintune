@@ -33,7 +33,7 @@ MS_AZURE_REFRESH_TOKEN_STRING = "refresh_token"
 
 MS_AZURE_BASE_URL_NOT_FOUND_MESSAGE = "SOAR Base URL not found in System Settings. Please specify this value in System Settings."
 MS_AZURE_HTML_ERROR = "Bad Request Bad Request - Invalid URL HTTP Error 400. The request URL is invalid."
-MS_AZURE_NEXT_LINK_STRING = "odata.nextLink"
+MS_AZURE_NEXT_LINK_STRING = '@odata.nextLink'
 MS_AZURE_PAGE_SIZE = 999
 MS_AZURE_ERROR_MESSAGE_UNKNOWN = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
@@ -52,6 +52,7 @@ AUTH_FAILURE_MESSAGES = (
     "AuthenticationFailed",
     "TokenExpired",
     "InvalidAuthenticationToken",
+    "token is expired",
 )
 MS_REST_URL_NOT_AVAILABLE_MESSAGE = "Rest URL not available. Error: {error}"
 MS_OAUTH_URL_MESSAGE = "Using OAuth URL:\n"
