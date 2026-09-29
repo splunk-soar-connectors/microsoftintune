@@ -1,4 +1,1 @@
 **Unreleased**
-
-* Renew Microsoft Graph access tokens when they expire or Graph rejects them.
-* Declare Python 3.13 support for current Splunk SOAR releases.
