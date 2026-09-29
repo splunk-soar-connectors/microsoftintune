@@ -545,6 +545,13 @@ class MicrosoftIntuneConnector(BaseConnector):
         if 200 <= response.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
+        error = resp_json.get("error", {}) if isinstance(resp_json, dict) else {}
+        self._graph_token_rejected = (
+            response.status_code == 401
+            and isinstance(error, dict)
+            and error.get("code") in {"InvalidAuthenticationToken", "ExpiredAuthenticationToken", "TokenExpired"}
+        )
+
         error_message = response.text.replace("{", "{{").replace("}", "}}")
         message = MS_AZURE_RESPONSE_ERROR_MESSAGE.format(status_code=response.status_code, error_text=error_message)
 
@@ -696,6 +703,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         """
 
         resp_json = None
+        self._graph_token_rejected = False
 
         try:
             request_func = getattr(requests, method)
@@ -717,7 +725,7 @@ class MicrosoftIntuneConnector(BaseConnector):
             )
         except Exception as e:
             error_message = f"Error connecting to server. Details: {self._get_error_message_from_exception(e)}"
-            return RetVal(action_result.set_status(phantom.APP_ERROR, error_message), r)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, error_message), None)
 
         return self._process_response(r, action_result)
 
@@ -751,7 +759,15 @@ class MicrosoftIntuneConnector(BaseConnector):
             headers = {}
 
         token = self._state.get(MS_AZURE_TOKEN_STRING, {})
-        if not token.get(MS_AZURE_ACCESS_TOKEN_STRING):
+        expires_at = token.get("expires_at")
+        try:
+            if isinstance(expires_at, bool):
+                raise ValueError
+            expired = self._access_token and expires_at is not None and time.time() >= float(expires_at)
+        except (TypeError, ValueError, OverflowError):
+            expired = False
+
+        if not self._access_token or expired:
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
@@ -765,9 +781,7 @@ class MicrosoftIntuneConnector(BaseConnector):
         )
         ret_val, resp_json = self._make_rest_call(url, action_result, verify, headers, params, data, json, method)
 
-        # If token is expired, generate a new token
-        msg = action_result.get_message()
-        if msg and any(failure_message in msg for failure_message in AUTH_FAILURE_MESSAGES):
+        if phantom.is_fail(ret_val) and self._graph_token_rejected:
             self.save_progress("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
@@ -965,10 +979,27 @@ class MicrosoftIntuneConnector(BaseConnector):
             data["scope"] = "https://graph.microsoft.com/.default"
             data["grant_type"] = "client_credentials"
 
+        started_at = time.time()
         ret_val, resp_json = self._make_rest_call(req_url, action_result, headers=headers, data=data, method="post")
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
+
+        if not resp_json.get(MS_AZURE_ACCESS_TOKEN_STRING):
+            return action_result.set_status(phantom.APP_ERROR, "Token response did not include an access token")
+
+        if not resp_json.get(MS_AZURE_REFRESH_TOKEN_STRING) and self._refresh_token:
+            resp_json[MS_AZURE_REFRESH_TOKEN_STRING] = self._refresh_token
+
+        try:
+            expires_in = resp_json.get("expires_in")
+            if isinstance(expires_in, bool):
+                raise ValueError
+            lifetime = float(expires_in)
+            if 0 < lifetime < float("inf"):
+                resp_json["expires_at"] = started_at + lifetime
+        except (TypeError, ValueError, OverflowError):
+            pass
 
         if self._admin_access_required and self._admin_access_granted:
             self._state["admin_consent"] = True
